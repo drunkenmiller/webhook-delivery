@@ -1,0 +1,24 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Go
+/worker/bin/
+*.test
+*.out
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log

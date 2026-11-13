@@ -1,0 +1,30 @@
+# Local development infrastructure.
+#   docker compose up -d     start in the background
+#   docker compose ps        status (wait for "healthy")
+#   docker compose logs -f   follow logs
+#   docker compose down      stop (data is kept in the volume)
+#   docker compose down -v   stop AND delete the data volume
+
+services:
+  db:
+    image: postgres:18-alpine          # official image, pinned to the major version
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-webhooks}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-webhooks}
+      POSTGRES_DB: ${POSTGRES_DB:-webhooks}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"  # host:container — change the left side if 5432 is taken
+    volumes:
+      # Postgres 18 images keep data under /var/lib/postgresql/<major>/…,
+      # so the volume is mounted on the parent directory.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Added in later milestones: api, worker, receiver.
+
+volumes:
+  pgdata:
