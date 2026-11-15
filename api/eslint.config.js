@@ -14,6 +14,11 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    rules: {
+      // Convention: a leading underscore marks a parameter that must exist but is unused
+      // (e.g. `_next` in an Express error handler, which needs exactly 4 parameters).
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
   {
     files: ['**/*.js'],
