@@ -1,0 +1,41 @@
+# CI for the Node.js API. GitHub runs this on its own machines ("runners") on every
+# pull request and on every push to main that touches the API.
+name: api
+
+on:
+  pull_request:
+    paths: ['api/**', '.github/workflows/api.yml']
+  push:
+    branches: [main]
+    paths: ['api/**', '.github/workflows/api.yml']
+
+# A newer push to the same branch cancels the run that is still in progress.
+concurrency:
+  group: api-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      # `npm ci` installs exactly what package-lock.json says (reproducible, fails if out of sync).
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test

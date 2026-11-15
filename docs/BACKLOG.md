@@ -7,13 +7,13 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 - [x] Spec, ADRs, roadmap, README — support
 - [x] `docker-compose.yml` with PostgreSQL 18 + healthcheck — support
 - [ ] **Schema v1 migration** (`applications`, `endpoints`, `messages`, `deliveries`, `attempts`, constraints, claim index) — core
-- [ ] API scaffolding: TypeScript config, Express 5 app, pino, config from env, `/healthz`, `/readyz`, error handler (problem+json), request ID — support
+- [x] API scaffolding: TypeScript config, Express 5 app, pino, config from env, `/healthz`, `/readyz`, error handler (problem+json), request ID — support
 - [ ] API key auth middleware (prefix lookup + SHA-256 + constant-time compare) — core
 - [ ] `POST /v1/applications` (admin) — core
 - [ ] `POST/GET/PATCH/DELETE /v1/endpoints` — core
 - [ ] **`POST /v1/messages` with idempotency + fan-out in one transaction** — core
 - [ ] Integration test setup: Vitest + Supertest + Testcontainers — support (skeleton) / core (cases)
-- [ ] CI: lint, typecheck, tests for `api/` — support
+- [x] CI: lint, typecheck, tests for `api/` — support
 - [ ] Dockerfile for the API; deploy skeleton (after ADR 0008 is decided) — support
 
 ## M2 — Worker

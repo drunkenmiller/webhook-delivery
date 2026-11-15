@@ -56,7 +56,17 @@ make db-rollback                # undo the last migration
 make db-psql                    # psql shell inside the container
 ```
 
-More steps (API, worker) will be added as each part lands.
+Run the API (Node.js 24):
+
+```bash
+cd api
+npm install
+npm run dev                     # http://localhost:3000/healthz — reloads on file changes
+npm test                        # unit and HTTP tests (no database needed)
+npm run lint && npm run typecheck
+```
+
+More steps (worker, dashboard) will be added as each part lands.
 
 ## Status
 | Area | Status |
@@ -65,7 +75,8 @@ More steps (API, worker) will be added as each part lands.
 | Local PostgreSQL (Compose) | ✅ |
 | Schema v1 + migrations | ⏳ |
 | `POST /v1/messages` with idempotency | ⏳ |
-| CI (GitHub Actions) | ⏳ |
+| API scaffolding (health checks, problem+json errors, request IDs) | ✅ |
+| CI (GitHub Actions) | 🟡 API only |
 | Go worker (claim, lease, HMAC) | ⏳ |
 | Retries, DLQ, replay, graceful shutdown | ⏳ |
 | Dashboard | ⏳ |
