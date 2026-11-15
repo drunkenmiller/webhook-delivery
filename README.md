@@ -45,7 +45,18 @@ docker compose up -d        # starts PostgreSQL 18
 docker compose ps           # wait until "healthy"
 ```
 
-More steps (migrations, API, worker) will be added as each part lands.
+Migrations use [dbmate](https://github.com/amacneil/dbmate) (`brew install dbmate`). Shortcuts live in the
+`Makefile` — run `make` to list them:
+
+```bash
+make db-up                      # start PostgreSQL and wait until healthy
+make db-new name=init_schema    # create db/migrations/<timestamp>_init_schema.sql
+make db-migrate                 # apply pending migrations
+make db-rollback                # undo the last migration
+make db-psql                    # psql shell inside the container
+```
+
+More steps (API, worker) will be added as each part lands.
 
 ## Status
 | Area | Status |
