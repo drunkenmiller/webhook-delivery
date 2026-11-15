@@ -45,7 +45,28 @@ docker compose up -d        # starts PostgreSQL 18
 docker compose ps           # wait until "healthy"
 ```
 
-More steps (migrations, API, worker) will be added as each part lands.
+Migrations use [dbmate](https://github.com/amacneil/dbmate) (`brew install dbmate`). Shortcuts live in the
+`Makefile` — run `make` to list them:
+
+```bash
+make db-up                      # start PostgreSQL and wait until healthy
+make db-new name=init_schema    # create db/migrations/<timestamp>_init_schema.sql
+make db-migrate                 # apply pending migrations
+make db-rollback                # undo the last migration
+make db-psql                    # psql shell inside the container
+```
+
+Run the API (Node.js 24):
+
+```bash
+cd api
+npm install
+npm run dev                     # http://localhost:3000/healthz — reloads on file changes
+npm test                        # unit and HTTP tests (no database needed)
+npm run lint && npm run typecheck
+```
+
+More steps (worker, dashboard) will be added as each part lands.
 
 ## Status
 | Area | Status |
@@ -54,7 +75,8 @@ More steps (migrations, API, worker) will be added as each part lands.
 | Local PostgreSQL (Compose) | ✅ |
 | Schema v1 + migrations | ⏳ |
 | `POST /v1/messages` with idempotency | ⏳ |
-| CI (GitHub Actions) | ⏳ |
+| API scaffolding (health checks, problem+json errors, request IDs) | ✅ |
+| CI (GitHub Actions) | 🟡 API only |
 | Go worker (claim, lease, HMAC) | ⏳ |
 | Retries, DLQ, replay, graceful shutdown | ⏳ |
 | Dashboard | ⏳ |
