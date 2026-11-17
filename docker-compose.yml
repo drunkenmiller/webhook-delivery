@@ -24,7 +24,30 @@ services:
       timeout: 3s
       retries: 10
 
-  # Added in later milestones: api, worker, receiver.
+  # The services below belong to the "app" profile: plain `docker compose up` starts only the
+  # database (so `npm run dev` can use port 3000); `docker compose --profile app up` adds them.
+  api:
+    profiles: [app]
+    build: ./api                       # builds api/Dockerfile
+    environment:
+      # Inside the Compose network the database host is the service name "db", not localhost.
+      DATABASE_URL: postgres://${POSTGRES_USER:-webhooks}:${POSTGRES_PASSWORD:-webhooks}@db:5432/${POSTGRES_DB:-webhooks}?sslmode=disable
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy    # wait for the db healthcheck, not just container start
+
+  receiver:
+    profiles: [app]
+    build: ./tools/receiver
+    environment:
+      WEBHOOK_SECRET: ${RECEIVER_WEBHOOK_SECRET:-}   # empty = signatures not checked
+    ports:
+      - "${RECEIVER_PORT:-4000}:4000"
+
+  # Added in a later milestone: worker.
 
 volumes:
   pgdata:
