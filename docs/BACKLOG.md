@@ -14,7 +14,7 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 - [ ] **`POST /v1/messages` with idempotency + fan-out in one transaction** — core
 - [ ] Integration test setup: Vitest + Supertest + Testcontainers — support (skeleton) / core (cases)
 - [x] CI: lint, typecheck, tests for `api/` — support
-- [ ] Dockerfile for the API; deploy skeleton (after ADR 0008 is decided) — support
+- [ ] Dockerfile for the API (done); deploy skeleton (after ADR 0008 is decided) — support
 
 ## M2 — Worker
 - [ ] Go module scaffolding, config from env, pgx pool, structured logs (slog) — support
