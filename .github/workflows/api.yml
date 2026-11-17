@@ -39,3 +39,11 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
+
+  # Proves the production image still builds (it does not publish it anywhere yet).
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build --tag webhook-delivery-api:ci ./api

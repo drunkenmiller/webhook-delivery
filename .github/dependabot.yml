@@ -1,0 +1,29 @@
+# Dependabot opens PRs when dependencies have new versions (and for security advisories).
+# Grouped weekly so it doesn't flood the repo with one PR per package.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /api
+    schedule:
+      interval: weekly
+    groups:
+      api-dependencies:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /tools/receiver
+    schedule:
+      interval: weekly
+    groups:
+      receiver-dependencies:
+        patterns: ['*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directories: ['/api', '/tools/receiver']
+    schedule:
+      interval: weekly

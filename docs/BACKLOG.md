@@ -14,14 +14,14 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 - [ ] **`POST /v1/messages` with idempotency + fan-out in one transaction** — core
 - [ ] Integration test setup: Vitest + Supertest + Testcontainers — support (skeleton) / core (cases)
 - [x] CI: lint, typecheck, tests for `api/` — support
-- [ ] Dockerfile for the API; deploy skeleton (after ADR 0008 is decided) — support
+- [ ] Dockerfile for the API (done); deploy skeleton (after ADR 0008 is decided) — support
 
 ## M2 — Worker
 - [ ] Go module scaffolding, config from env, pgx pool, structured logs (slog) — support
 - [ ] **Claim query with SKIP LOCKED + lease** — core
 - [ ] **HTTP delivery with timeout + Standard Webhooks signature** — core
 - [ ] Attempt recording + fenced completion — core
-- [ ] Test receiver (`tools/receiver`) that verifies signatures and can simulate failures/slowness — support
+- [x] Test receiver (`tools/receiver`) that verifies signatures and can simulate failures/slowness — support
 - [ ] CI job for `worker/` (vet, test) — support
 
 ## M3 — Reliability

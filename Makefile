@@ -9,10 +9,16 @@ DBMATE_FLAGS ?=
 
 .DEFAULT_GOAL := help
 
-.PHONY: help db-up db-down db-new db-migrate db-rollback db-status db-reset db-psql
+.PHONY: help up down db-up db-down db-new db-migrate db-rollback db-status db-reset db-psql
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "} {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+
+up: ## Build and start everything in containers (db, api, receiver)
+	docker compose --profile app up -d --build --wait
+
+down: ## Stop all containers, including the app profile (data is kept)
+	docker compose --profile app down
 
 db-up: ## Start PostgreSQL and wait until it is healthy
 	docker compose up -d --wait

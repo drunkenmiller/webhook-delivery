@@ -33,6 +33,7 @@ api/            Node.js + TypeScript + Express 5 (ingest & management API)
 worker/         Go delivery worker
 dashboard/      Vite + React + TanStack Query (planned)
 db/migrations/  SQL migrations (dbmate), shared by API and worker
+tools/receiver/  test receiver (signature verification, simulated failures)
 docs/           spec, ADRs, roadmap, backlog
 ```
 
@@ -64,6 +65,15 @@ npm install
 npm run dev                     # http://localhost:3000/healthz — reloads on file changes
 npm test                        # unit and HTTP tests (no database needed)
 npm run lint && npm run typecheck
+```
+
+Or run everything in containers (PostgreSQL + API + [test receiver](tools/receiver/README.md)):
+
+```bash
+make up                         # docker compose --profile app up -d --build --wait
+curl localhost:3000/readyz      # API, connected to the database
+curl localhost:4000/stats       # test receiver
+make down
 ```
 
 More steps (worker, dashboard) will be added as each part lands.
