@@ -1,0 +1,32 @@
+{
+  "name": "@webhook-delivery/receiver",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Test receiver: verifies Standard Webhooks signatures and simulates failing or slow endpoints",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "dev": "node --watch src/server.ts",
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.2",
+    "@types/supertest": "^7.2.1",
+    "eslint": "^10.15.0",
+    "prettier": "^3.10.1",
+    "standardwebhooks": "^1.1.1",
+    "supertest": "^7.3.2",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.73.0",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

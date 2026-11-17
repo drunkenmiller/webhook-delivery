@@ -21,7 +21,7 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 - [ ] **Claim query with SKIP LOCKED + lease** — core
 - [ ] **HTTP delivery with timeout + Standard Webhooks signature** — core
 - [ ] Attempt recording + fenced completion — core
-- [ ] Test receiver (`tools/receiver`) that verifies signatures and can simulate failures/slowness — support
+- [x] Test receiver (`tools/receiver`) that verifies signatures and can simulate failures/slowness — support
 - [ ] CI job for `worker/` (vet, test) — support
 
 ## M3 — Reliability
