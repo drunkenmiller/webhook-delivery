@@ -28,7 +28,9 @@ services:
   # database (so `npm run dev` can use port 3000); `docker compose --profile app up` adds them.
   api:
     profiles: [app]
-    build: ./api                       # builds api/Dockerfile
+    build:
+      context: .                       # repository root (workspace lockfile lives there)
+      dockerfile: api/Dockerfile
     environment:
       # Inside the Compose network the database host is the service name "db", not localhost.
       DATABASE_URL: postgres://${POSTGRES_USER:-webhooks}:${POSTGRES_PASSWORD:-webhooks}@db:5432/${POSTGRES_DB:-webhooks}?sslmode=disable

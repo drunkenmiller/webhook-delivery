@@ -2,20 +2,13 @@
 # Grouped weekly so it doesn't flood the repo with one PR per package.
 version: 2
 updates:
+  # npm workspaces: one entry at the root covers api/ and tools/receiver/ (single lockfile).
   - package-ecosystem: npm
-    directory: /api
+    directory: /
     schedule:
       interval: weekly
     groups:
-      api-dependencies:
-        patterns: ['*']
-
-  - package-ecosystem: npm
-    directory: /tools/receiver
-    schedule:
-      interval: weekly
-    groups:
-      receiver-dependencies:
+      npm-dependencies:
         patterns: ['*']
 
   - package-ecosystem: github-actions

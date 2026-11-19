@@ -1,0 +1,58 @@
+# CI for every Node.js workspace (api, tools/receiver). GitHub runs this on its own machines
+# ("runners") on every pull request and on every push to main.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch cancels the run that is still in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      # One install at the root installs every workspace from the single package-lock.json.
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+
+  # Proves the production images still build (they are not published anywhere yet).
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build --file api/Dockerfile --tag webhook-delivery-api:ci .
+      - run: docker build --tag webhook-delivery-receiver:ci tools/receiver
+
+  # Tests against a real PostgreSQL 18 started by Testcontainers (Docker is preinstalled on the
+  # Ubuntu runners).
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:integration

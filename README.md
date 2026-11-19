@@ -33,7 +33,7 @@ api/            Node.js + TypeScript + Express 5 (ingest & management API)
 worker/         Go delivery worker
 dashboard/      Vite + React + TanStack Query (planned)
 db/migrations/  SQL migrations (dbmate), shared by API and worker
-tools/receiver/  test receiver (signature verification, simulated failures)
+tools/receiver/ test receiver (signature verification, simulated failures)
 docs/           spec, ADRs, roadmap, backlog
 ```
 
@@ -57,14 +57,14 @@ make db-rollback                # undo the last migration
 make db-psql                    # psql shell inside the container
 ```
 
-Run the API (Node.js 24):
+Node.js code lives in **npm workspaces** (`api/`, `tools/receiver/`) that share one lockfile and
+one TypeScript/ESLint/Prettier setup at the repository root. Install once, at the root:
 
 ```bash
-cd api
-npm install
-npm run dev                     # http://localhost:3000/healthz — reloads on file changes
-npm test                        # unit and HTTP tests (no database needed)
-npm run lint && npm run typecheck
+npm install                     # installs every workspace
+npm run check                   # lint + format + typecheck + tests, in every workspace
+npm run dev --workspace api     # http://localhost:3000/healthz — reloads on file changes
+npm run test:integration        # tests against a real PostgreSQL 18 (needs Docker running)
 ```
 
 Or run everything in containers (PostgreSQL + API + [test receiver](tools/receiver/README.md)):
