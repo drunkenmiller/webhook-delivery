@@ -1,17 +1,15 @@
-# CI for the Node.js API. GitHub runs this on its own machines ("runners") on every
-# pull request and on every push to main that touches the API.
-name: api
+# CI for every Node.js workspace (api, tools/receiver). GitHub runs this on its own machines
+# ("runners") on every pull request and on every push to main.
+name: ci
 
 on:
   pull_request:
-    paths: ['api/**', '.github/workflows/api.yml']
   push:
     branches: [main]
-    paths: ['api/**', '.github/workflows/api.yml']
 
 # A newer push to the same branch cancels the run that is still in progress.
 concurrency:
-  group: api-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -21,9 +19,6 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: api
     steps:
       - uses: actions/checkout@v7
 
@@ -31,19 +26,19 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: api/package-lock.json
 
-      # `npm ci` installs exactly what package-lock.json says (reproducible, fails if out of sync).
+      # One install at the root installs every workspace from the single package-lock.json.
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
 
-  # Proves the production image still builds (it does not publish it anywhere yet).
+  # Proves the production images still build (they are not published anywhere yet).
   docker:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-      - run: docker build --tag webhook-delivery-api:ci ./api
+      - run: docker build --file api/Dockerfile --tag webhook-delivery-api:ci .
+      - run: docker build --tag webhook-delivery-receiver:ci tools/receiver

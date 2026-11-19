@@ -1,5 +1,6 @@
-# Production image for the API.
-#   docker build -t webhook-delivery-api ./api
+# Production image for the API. The build context is the REPOSITORY ROOT, because the npm
+# workspace lockfile (package-lock.json) lives there:
+#   docker build -f api/Dockerfile -t webhook-delivery-api .
 #   docker run --rm -p 3000:3000 -e DATABASE_URL=... webhook-delivery-api
 
 # Official Node.js image on Alpine Linux (small). Pinned to the major version used in development.
@@ -9,12 +10,16 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # Copy only the dependency manifests first: Docker caches each step ("layer"), so as long as
-# these two files don't change, the slow `npm ci` step is reused on the next build.
+# these files don't change, the slow `npm ci` step is reused on the next build.
+# npm ci checks the lockfile against EVERY workspace's package.json, so all of them are copied.
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY api/package.json api/
+COPY tools/receiver/package.json tools/receiver/
+RUN npm ci --workspace api --omit=dev && npm cache clean --force
 
 # Then the source code. Node 24 runs the .ts files directly (type stripping), no build step.
-COPY src ./src
+COPY api/src api/src
+WORKDIR /app/api
 
 # Run as the unprivileged "node" user that the image provides, not as root.
 USER node

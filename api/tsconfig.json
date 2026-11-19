@@ -1,24 +1,4 @@
 {
-  // Node 24 runs .ts files directly by stripping the type annotations ("type stripping"),
-  // so there is no build step: tsc is only used as a type checker (noEmit).
-  "compilerOptions": {
-    "target": "es2024",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "types": ["node"],
-
-    // Required by Node's type stripping: imports keep their .ts extension and only
-    // syntax that can be erased (no enums, namespaces or constructor parameter properties).
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "erasableSyntaxOnly": true,
-    "verbatimModuleSyntax": true,
-
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
-    "skipLibCheck": true
-  },
+  "extends": "../tsconfig.base.json",
   "include": ["src", "test", "*.ts"]
 }

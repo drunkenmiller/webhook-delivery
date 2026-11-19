@@ -1,0 +1,9 @@
+# Build context filter for images built from the repository root (api/Dockerfile).
+# Allowlist: ignore everything, then re-include only what the images need. This guarantees that
+# .env, study notes, .git and local node_modules are never sent to the Docker build.
+*
+!package.json
+!package-lock.json
+!api/package.json
+!api/src
+!tools/receiver/package.json
