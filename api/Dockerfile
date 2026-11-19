@@ -4,7 +4,7 @@
 #   docker run --rm -p 3000:3000 -e DATABASE_URL=... webhook-delivery-api
 
 # Official Node.js image on Alpine Linux (small). Pinned to the major version used in development.
-FROM node:24-alpine
+FROM node:26-alpine
 
 ENV NODE_ENV=production
 WORKDIR /app
