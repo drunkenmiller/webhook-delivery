@@ -12,7 +12,7 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 - [ ] `POST /v1/applications` (admin) — core
 - [ ] `POST/GET/PATCH/DELETE /v1/endpoints` — core
 - [ ] **`POST /v1/messages` with idempotency + fan-out in one transaction** — core
-- [ ] Integration test setup: Vitest + Supertest + Testcontainers — support (skeleton) / core (cases)
+- [ ] Integration test setup: Vitest + Supertest + Testcontainers — support (skeleton ✅) / core (cases)
 - [x] CI: lint, typecheck, tests for `api/` — support
 - [ ] Dockerfile for the API (done); deploy skeleton (after ADR 0008 is decided) — support
 

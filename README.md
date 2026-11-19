@@ -64,6 +64,7 @@ one TypeScript/ESLint/Prettier setup at the repository root. Install once, at th
 npm install                     # installs every workspace
 npm run check                   # lint + format + typecheck + tests, in every workspace
 npm run dev --workspace api     # http://localhost:3000/healthz — reloads on file changes
+npm run test:integration        # tests against a real PostgreSQL 18 (needs Docker running)
 ```
 
 Or run everything in containers (PostgreSQL + API + [test receiver](tools/receiver/README.md)):
