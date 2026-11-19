@@ -1,5 +1,5 @@
 # Test receiver image (no runtime dependencies: only Node's standard library).
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /app
 COPY package.json ./
 COPY src ./src
