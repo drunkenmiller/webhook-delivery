@@ -10,6 +10,10 @@ updates:
     groups:
       npm-dependencies:
         patterns: ['*']
+    ignore:
+      # We stay on Node.js 24 (ADR 0004); @types/node must match the runtime major version.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
@@ -20,3 +24,7 @@ updates:
     directories: ['/api', '/tools/receiver']
     schedule:
       interval: weekly
+    ignore:
+      # Base image stays on node:24-alpine (ADR 0004); minor/patch image updates still come in.
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
