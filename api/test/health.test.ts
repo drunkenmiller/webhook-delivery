@@ -17,6 +17,7 @@ describe('GET /healthz', () => {
       logger: silentLogger,
       db: brokenDb,
       adminToken: 'test-admin-token-123',
+      allowHttpEndpointUrls: true,
     });
     const res = await request(app).get('/healthz');
     expect(res.status).toBe(200);
@@ -30,6 +31,7 @@ describe('GET /readyz', () => {
       logger: silentLogger,
       db: healthyDb,
       adminToken: 'test-admin-token-123',
+      allowHttpEndpointUrls: true,
     });
     const res = await request(app).get('/readyz');
     expect(res.status).toBe(200);
@@ -40,6 +42,7 @@ describe('GET /readyz', () => {
       logger: silentLogger,
       db: brokenDb,
       adminToken: 'test-admin-token-123',
+      allowHttpEndpointUrls: true,
     });
     const res = await request(app).get('/readyz');
     expect(res.status).toBe(503);
@@ -53,6 +56,7 @@ describe('error handling', () => {
     logger: silentLogger,
     db: healthyDb,
     adminToken: 'test-admin-token-123',
+    allowHttpEndpointUrls: true,
   });
 
   it('returns 404 problem+json for unknown routes', async () => {
@@ -84,6 +88,7 @@ describe('X-Request-Id', () => {
     logger: silentLogger,
     db: healthyDb,
     adminToken: 'test-admin-token-123',
+    allowHttpEndpointUrls: true,
   });
 
   it('echoes a valid caller-provided id', async () => {

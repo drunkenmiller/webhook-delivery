@@ -11,7 +11,12 @@ export const ADMIN_TOKEN = 'integration-admin-token';
 export function createTestContext() {
   const logger = pino({ level: 'silent' });
   const pool = createPool({ DATABASE_URL: inject('databaseUrl') }, logger);
-  const app = createApp({ logger, db: pool, adminToken: ADMIN_TOKEN });
+  const app = createApp({
+    logger,
+    db: pool,
+    adminToken: ADMIN_TOKEN,
+    allowHttpEndpointUrls: false,
+  });
   return { app, pool };
 }
 
