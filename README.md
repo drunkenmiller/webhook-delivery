@@ -76,7 +76,27 @@ curl localhost:4000/stats       # test receiver
 make down
 ```
 
-More steps (worker, dashboard) will be added as each part lands.
+### Try the API
+
+```bash
+make db-up && make db-migrate && npm run dev --workspace api      # in another terminal:
+
+# 1. Create an application (admin) — the API key is shown only once
+curl -s localhost:3000/v1/applications -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H 'Content-Type: application/json' -d '{"name":"Acme"}'
+
+# 2. Register an endpoint with that key — the signing secret is shown only once
+curl -s localhost:3000/v1/endpoints -H "Authorization: Bearer whd_..." \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"http://localhost:4000/hook","event_types":["invoice.paid"]}'
+
+# 3. List, update, deactivate
+curl -s 'localhost:3000/v1/endpoints?limit=10' -H "Authorization: Bearer whd_..."
+curl -s -X PATCH localhost:3000/v1/endpoints/<id> -H "Authorization: Bearer whd_..." \
+  -H 'Content-Type: application/json' -d '{"active":false}'
+```
+
+More steps (messages, worker, dashboard) will be added as each part lands.
 
 ## Status
 | Area | Status |
@@ -84,6 +104,7 @@ More steps (worker, dashboard) will be added as each part lands.
 | Spec & ADRs | ✅ draft |
 | Local PostgreSQL (Compose) | ✅ |
 | Schema v1 + migrations | ⏳ |
+| Applications, API key auth, endpoints CRUD | ✅ |
 | `POST /v1/messages` with idempotency | ⏳ |
 | API scaffolding (health checks, problem+json errors, request IDs) | ✅ |
 | CI (GitHub Actions) | 🟡 API only |

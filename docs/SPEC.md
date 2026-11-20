@@ -82,7 +82,7 @@ cursor pagination). All timestamps are `timestamptz`.
 | secret | text NOT NULL | `whsec_` + base64(32 random bytes); returned once on creation |
 | event_types | text[] NOT NULL DEFAULT '{}' | empty array = subscribed to all event types |
 | active | boolean NOT NULL DEFAULT true | inactive endpoints get no new deliveries |
-| created_at / updated_at | timestamptz | |
+| created_at / updated_at | timestamptz NOT NULL DEFAULT now() | `updated_at` is set by the API on every update (no trigger) |
 
 ### `messages`
 | Column | Type | Notes |
@@ -183,7 +183,7 @@ webhook-signature: v1,<base64(HMAC-SHA256(secret_bytes, "{id}.{timestamp}.{body}
 ## 6. HTTP API (`/v1`)
 
 Conventions:
-- Auth: `Authorization: Bearer <api_key>`; key format `whd_<prefix>_<secret>`. Admin routes use `ADMIN_TOKEN`.
+- Auth: `Authorization: Bearer <api_key>`; key format `whd_<prefix>_<secret>`. Admin routes use `ADMIN_TOKEN` (≥ 16 chars). Every authentication failure returns the same `401` with `WWW-Authenticate: Bearer`.
 - Errors: `application/problem+json` (RFC 9457) — `{ type, title, status, detail, errors? }`.
 - Pagination: `?limit=` (1–100, default 20) and `?cursor=` (opaque); responses include `next_cursor`.
 - Every response carries `X-Request-Id` (taken from the request if present, otherwise generated).
@@ -193,7 +193,7 @@ Conventions:
 |---|---|---|---|
 | `POST /v1/applications` | admin | Create application; returns the API key **once** | 201 |
 | `POST /v1/endpoints` | app | Create `{ url, event_types?, active? }`; returns secret **once** | 201 |
-| `GET /v1/endpoints` | app | List endpoints | 200 |
+| `GET /v1/endpoints` | app | List endpoints, newest first: `{ data, next_cursor }` | 200 |
 | `GET /v1/endpoints/:id` | app | Get endpoint (secret omitted) | 200 |
 | `PATCH /v1/endpoints/:id` | app | Update `url`, `event_types`, `active` | 200 |
 | `DELETE /v1/endpoints/:id` | app | Deactivate (soft delete) | 204 |
