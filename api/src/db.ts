@@ -2,6 +2,9 @@ import pg from 'pg';
 import type { Logger } from 'pino';
 import type { Config } from './config.ts';
 
+// What the rest of the code needs from the database: `query`. A pg.Pool fits; tests may pass fakes.
+export type Db = Pick<pg.Pool, 'query'>;
+
 // A connection pool keeps a few open connections to PostgreSQL and lends them to queries,
 // instead of opening a new TCP connection (and authenticating) for every request.
 export function createPool(config: Pick<Config, 'DATABASE_URL'>, logger: Logger): pg.Pool {

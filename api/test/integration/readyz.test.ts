@@ -1,13 +1,8 @@
-import { pino } from 'pino';
 import request from 'supertest';
-import { afterAll, describe, expect, inject, it } from 'vitest';
-import { createApp } from '../../src/app.ts';
-import { createPool } from '../../src/db.ts';
+import { afterAll, describe, expect, it } from 'vitest';
+import { createTestContext } from './helpers.ts';
 
-// The same app as production, wired to the real database started by global-setup.ts.
-const logger = pino({ level: 'silent' });
-const pool = createPool({ DATABASE_URL: inject('databaseUrl') }, logger);
-const app = createApp({ logger, db: pool });
+const { app, pool } = createTestContext();
 
 afterAll(async () => {
   await pool.end();

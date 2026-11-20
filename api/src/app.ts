@@ -1,18 +1,21 @@
 import express, { type Express } from 'express';
 import type { Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
+import { applicationsRouter } from './applications/routes.ts';
+import type { Db } from './db.ts';
 import { errorHandler, notFoundHandler } from './http/problem.ts';
 import { resolveRequestId } from './http/request-id.ts';
-import { healthRouter, type Pingable } from './routes/health.ts';
+import { healthRouter } from './routes/health.ts';
 
 export interface AppDeps {
   logger: Logger;
-  db: Pingable;
+  db: Db;
+  adminToken: string;
 }
 
 // Builds the Express app without starting a server. Dependencies are passed in
 // (instead of imported as globals) so tests can create an app with fakes.
-export function createApp({ logger, db }: AppDeps): Express {
+export function createApp({ logger, db, adminToken }: AppDeps): Express {
   const app = express();
   app.disable('x-powered-by');
 
@@ -33,6 +36,7 @@ export function createApp({ logger, db }: AppDeps): Express {
   app.use(express.json({ limit: '256kb' }));
 
   app.use(healthRouter(db));
+  app.use(applicationsRouter({ db, adminToken }));
 
   // Must come after every route: 404 for unmatched paths, then the problem+json error handler.
   app.use(notFoundHandler);
