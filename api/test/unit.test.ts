@@ -20,23 +20,30 @@ describe('resolveRequestId', () => {
 
 describe('loadConfig', () => {
   const DATABASE_URL = 'postgres://user:pass@localhost:5432/db';
+  const ADMIN_TOKEN = 'a-long-admin-token';
 
   it('applies defaults', () => {
-    expect(loadConfig({ DATABASE_URL })).toEqual({
+    expect(loadConfig({ DATABASE_URL, ADMIN_TOKEN })).toEqual({
       NODE_ENV: 'development',
       PORT: 3000,
       LOG_LEVEL: 'info',
       DATABASE_URL,
+      ADMIN_TOKEN,
     });
   });
 
   it('coerces PORT from a string', () => {
-    expect(loadConfig({ DATABASE_URL, PORT: '8080' }).PORT).toBe(8080);
+    expect(loadConfig({ DATABASE_URL, ADMIN_TOKEN, PORT: '8080' }).PORT).toBe(8080);
   });
 
   it('fails fast on invalid values', () => {
-    expect(() => loadConfig({ DATABASE_URL, PORT: 'abc' })).toThrow(/Invalid configuration/);
+    expect(() => loadConfig({ DATABASE_URL, ADMIN_TOKEN, PORT: 'abc' })).toThrow(
+      /Invalid configuration/,
+    );
     expect(() => loadConfig({})).toThrow(/DATABASE_URL/);
-    expect(() => loadConfig({ DATABASE_URL: 'mysql://localhost/db' })).toThrow(/DATABASE_URL/);
+    expect(() => loadConfig({ DATABASE_URL, ADMIN_TOKEN: 'short' })).toThrow(/ADMIN_TOKEN/);
+    expect(() => loadConfig({ DATABASE_URL: 'mysql://localhost/db', ADMIN_TOKEN })).toThrow(
+      /DATABASE_URL/,
+    );
   });
 });

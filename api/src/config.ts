@@ -8,6 +8,8 @@ const ConfigSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  // Bearer token for admin routes (POST /v1/applications). Long and random, e.g. `openssl rand -hex 32`.
+  ADMIN_TOKEN: z.string().min(16),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

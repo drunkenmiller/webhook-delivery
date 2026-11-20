@@ -2,17 +2,23 @@ import { pino } from 'pino';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.ts';
-import type { Pingable } from '../src/routes/health.ts';
+import type { Db } from '../src/db.ts';
 
 // These tests build the app with fakes instead of a real database (fast, no Docker needed).
 // Integration tests against a real PostgreSQL (Testcontainers) come with the first real routes.
 const silentLogger = pino({ level: 'silent' });
-const healthyDb: Pingable = { query: () => Promise.resolve({ rows: [] }) };
-const brokenDb: Pingable = { query: () => Promise.reject(new Error('connection refused')) };
+// Minimal fakes: the health routes only call query(); the cast tells TypeScript to accept them as Db.
+const healthyDb = { query: () => Promise.resolve({ rows: [] }) } as unknown as Db;
+const brokenDb = { query: () => Promise.reject(new Error('connection refused')) } as unknown as Db;
 
 describe('GET /healthz', () => {
   it('returns 200 without touching the database', async () => {
-    const app = createApp({ logger: silentLogger, db: brokenDb });
+    const app = createApp({
+      logger: silentLogger,
+      db: brokenDb,
+      adminToken: 'test-admin-token-123',
+      allowHttpEndpointUrls: true,
+    });
     const res = await request(app).get('/healthz');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'ok' });
@@ -21,13 +27,23 @@ describe('GET /healthz', () => {
 
 describe('GET /readyz', () => {
   it('returns 200 when the database answers', async () => {
-    const app = createApp({ logger: silentLogger, db: healthyDb });
+    const app = createApp({
+      logger: silentLogger,
+      db: healthyDb,
+      adminToken: 'test-admin-token-123',
+      allowHttpEndpointUrls: true,
+    });
     const res = await request(app).get('/readyz');
     expect(res.status).toBe(200);
   });
 
   it('returns 503 problem+json when the database is unreachable', async () => {
-    const app = createApp({ logger: silentLogger, db: brokenDb });
+    const app = createApp({
+      logger: silentLogger,
+      db: brokenDb,
+      adminToken: 'test-admin-token-123',
+      allowHttpEndpointUrls: true,
+    });
     const res = await request(app).get('/readyz');
     expect(res.status).toBe(503);
     expect(res.headers['content-type']).toMatch(/^application\/problem\+json/);
@@ -36,7 +52,12 @@ describe('GET /readyz', () => {
 });
 
 describe('error handling', () => {
-  const app = createApp({ logger: silentLogger, db: healthyDb });
+  const app = createApp({
+    logger: silentLogger,
+    db: healthyDb,
+    adminToken: 'test-admin-token-123',
+    allowHttpEndpointUrls: true,
+  });
 
   it('returns 404 problem+json for unknown routes', async () => {
     const res = await request(app).get('/does-not-exist');
@@ -63,7 +84,12 @@ describe('error handling', () => {
 });
 
 describe('X-Request-Id', () => {
-  const app = createApp({ logger: silentLogger, db: healthyDb });
+  const app = createApp({
+    logger: silentLogger,
+    db: healthyDb,
+    adminToken: 'test-admin-token-123',
+    allowHttpEndpointUrls: true,
+  });
 
   it('echoes a valid caller-provided id', async () => {
     const res = await request(app).get('/healthz').set('X-Request-Id', 'abc-123');

@@ -7,7 +7,12 @@ import { createLogger } from './logger.ts';
 const config = loadConfig();
 const logger = createLogger(config);
 const pool = createPool(config, logger);
-const app = createApp({ logger, db: pool });
+const app = createApp({
+  logger,
+  db: pool,
+  adminToken: config.ADMIN_TOKEN,
+  allowHttpEndpointUrls: config.NODE_ENV !== 'production',
+});
 
 const server = app.listen(config.PORT, (error) => {
   if (error) {

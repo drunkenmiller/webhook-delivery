@@ -10,5 +10,7 @@ export default defineConfig({
     // Pulling the image and starting the container can take a while on the first run.
     hookTimeout: 120_000,
     testTimeout: 30_000,
+    // Test files share one database and empty it between tests, so they must not run in parallel.
+    fileParallelism: false,
   },
 });
