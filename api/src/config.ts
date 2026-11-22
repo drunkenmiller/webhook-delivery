@@ -10,6 +10,9 @@ const ConfigSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   // Bearer token for admin routes (POST /v1/applications). Long and random, e.g. `openssl rand -hex 32`.
   ADMIN_TOKEN: z.string().min(16),
+  // Allow endpoint URLs on private/loopback addresses (e.g. http://localhost:4000). Defaults to
+  // true outside production so local demos work; see endpoints/url-safety.ts.
+  ALLOW_PRIVATE_TARGETS: z.stringbool().optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

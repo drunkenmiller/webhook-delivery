@@ -12,6 +12,7 @@ const app = createApp({
   db: pool,
   adminToken: config.ADMIN_TOKEN,
   allowHttpEndpointUrls: config.NODE_ENV !== 'production',
+  allowPrivateEndpointTargets: config.ALLOW_PRIVATE_TARGETS ?? config.NODE_ENV !== 'production',
 });
 
 const server = app.listen(config.PORT, (error) => {

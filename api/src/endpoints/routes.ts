@@ -5,6 +5,7 @@ import { authenticateApp, authenticatedApp } from '../auth/app-auth.ts';
 import type { Db } from '../db.ts';
 import { ProblemError } from '../http/problem.ts';
 import { withValidation } from '../http/validate.ts';
+import { isPrivateTarget } from './url-safety.ts';
 import {
   deactivateEndpoint,
   findEndpoint,
@@ -18,14 +19,29 @@ export interface EndpointsRouterOptions {
   db: Db;
   // https:// is required in production; http:// is allowed in development (SPEC §3).
   allowHttpUrls: boolean;
+  // Private/loopback destinations are rejected unless this is true (SSRF guard, SPEC §10).
+  allowPrivateTargets: boolean;
 }
 
 const EventType = z.string().regex(/^[a-z0-9_.-]{1,64}$/, 'must match ^[a-z0-9_.-]{1,64}$');
 const IdParams = z.object({ id: z.uuid() });
 
-export function endpointsRouter({ db, allowHttpUrls }: EndpointsRouterOptions): Router {
+export function endpointsRouter({
+  db,
+  allowHttpUrls,
+  allowPrivateTargets,
+}: EndpointsRouterOptions): Router {
   const router = Router();
-  const EndpointUrl = z.url({ protocol: allowHttpUrls ? /^https?$/ : /^https$/ }).max(2048);
+  const EndpointUrl = z
+    .url({ protocol: allowHttpUrls ? /^https?$/ : /^https$/ })
+    .max(2048)
+    // zod 4 still runs a refinement when an earlier check on the same string failed (to report
+    // every issue at once), so an invalid URL can reach here: canParse() keeps new URL() from
+    // throwing, and z.url() has already reported that error.
+    .refine(
+      (url) => allowPrivateTargets || !URL.canParse(url) || !isPrivateTarget(new URL(url)),
+      'must not point to a private, loopback or link-local address',
+    );
 
   // strictObject: unknown fields (e.g. "secret") are rejected instead of silently ignored.
   const CreateBody = z.strictObject({

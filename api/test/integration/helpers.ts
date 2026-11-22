@@ -16,6 +16,7 @@ export function createTestContext() {
     db: pool,
     adminToken: ADMIN_TOKEN,
     allowHttpEndpointUrls: false,
+    allowPrivateEndpointTargets: false,
   });
   return { app, pool };
 }

@@ -184,6 +184,8 @@ webhook-signature: v1,<base64(HMAC-SHA256(secret_bytes, "{id}.{timestamp}.{body}
 
 Conventions:
 - Auth: `Authorization: Bearer <api_key>`; key format `whd_<prefix>_<secret>`. Admin routes use `ADMIN_TOKEN` (≥ 16 chars). Every authentication failure returns the same `401` with `WWW-Authenticate: Bearer`.
+- Request bodies must be `Content-Type: application/json` (charset parameter allowed), otherwise `415`. Requests without a body are not checked.
+- Endpoint URLs pointing to loopback, private (RFC 1918, `fc00::/7`), link-local (including `169.254.169.254`), CGNAT, multicast or reserved addresses, or to `localhost`/`*.localhost`, are rejected with `400` unless `ALLOW_PRIVATE_TARGETS=true` (default: `true` outside production).
 - Errors: `application/problem+json` (RFC 9457) — `{ type, title, status, detail, errors? }`.
 - Pagination: `?limit=` (1–100, default 20) and `?cursor=` (opaque); responses include `next_cursor`.
 - Every response carries `X-Request-Id` (taken from the request if present, otherwise generated).
@@ -261,7 +263,9 @@ Correlation: the API's `X-Request-Id` is stored in `messages.request_id` and log
 - [ ] API keys: 32 random bytes, stored as SHA-256, compared in constant time
 - [ ] Endpoint secrets never logged nor returned after creation
 - [ ] Parameterized SQL only
-- [ ] Body size limit; JSON-only content type
+- [x] Body size limit; JSON-only content type
 - [ ] Tenant isolation on every query (`app_id = <authenticated app>`)
 - [ ] SSRF: block private, loopback and link-local destinations in production (`ALLOW_PRIVATE_TARGETS=true` only in dev)
+  - [x] API: endpoint URLs with literal private IPs or `localhost` are rejected on create/update
+  - [ ] Worker: check the resolved IP at connect time (a public hostname can resolve to a private address — DNS rebinding)
 - [ ] Secrets only via environment variables; `.env` is git-ignored
