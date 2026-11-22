@@ -14,11 +14,18 @@ export interface AppDeps {
   db: Db;
   adminToken: string;
   allowHttpEndpointUrls: boolean;
+  allowPrivateEndpointTargets: boolean;
 }
 
 // Builds the Express app without starting a server. Dependencies are passed in
 // (instead of imported as globals) so tests can create an app with fakes.
-export function createApp({ logger, db, adminToken, allowHttpEndpointUrls }: AppDeps): Express {
+export function createApp({
+  logger,
+  db,
+  adminToken,
+  allowHttpEndpointUrls,
+  allowPrivateEndpointTargets,
+}: AppDeps): Express {
   const app = express();
   app.disable('x-powered-by');
 
@@ -41,7 +48,13 @@ export function createApp({ logger, db, adminToken, allowHttpEndpointUrls }: App
 
   app.use(healthRouter(db));
   app.use(applicationsRouter({ db, adminToken }));
-  app.use(endpointsRouter({ db, allowHttpUrls: allowHttpEndpointUrls }));
+  app.use(
+    endpointsRouter({
+      db,
+      allowHttpUrls: allowHttpEndpointUrls,
+      allowPrivateTargets: allowPrivateEndpointTargets,
+    }),
+  );
 
   // Must come after every route: 404 for unmatched paths, then the problem+json error handler.
   app.use(notFoundHandler);

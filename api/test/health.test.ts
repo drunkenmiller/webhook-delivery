@@ -18,6 +18,7 @@ describe('GET /healthz', () => {
       db: brokenDb,
       adminToken: 'test-admin-token-123',
       allowHttpEndpointUrls: true,
+      allowPrivateEndpointTargets: true,
     });
     const res = await request(app).get('/healthz');
     expect(res.status).toBe(200);
@@ -32,6 +33,7 @@ describe('GET /readyz', () => {
       db: healthyDb,
       adminToken: 'test-admin-token-123',
       allowHttpEndpointUrls: true,
+      allowPrivateEndpointTargets: true,
     });
     const res = await request(app).get('/readyz');
     expect(res.status).toBe(200);
@@ -43,6 +45,7 @@ describe('GET /readyz', () => {
       db: brokenDb,
       adminToken: 'test-admin-token-123',
       allowHttpEndpointUrls: true,
+      allowPrivateEndpointTargets: true,
     });
     const res = await request(app).get('/readyz');
     expect(res.status).toBe(503);
@@ -57,6 +60,7 @@ describe('error handling', () => {
     db: healthyDb,
     adminToken: 'test-admin-token-123',
     allowHttpEndpointUrls: true,
+    allowPrivateEndpointTargets: true,
   });
 
   it('returns 404 problem+json for unknown routes', async () => {
@@ -89,6 +93,7 @@ describe('X-Request-Id', () => {
     db: healthyDb,
     adminToken: 'test-admin-token-123',
     allowHttpEndpointUrls: true,
+    allowPrivateEndpointTargets: true,
   });
 
   it('echoes a valid caller-provided id', async () => {

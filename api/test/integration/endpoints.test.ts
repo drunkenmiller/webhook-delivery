@@ -85,6 +85,28 @@ describe('POST /v1/endpoints', () => {
       expect(res.status, JSON.stringify(body)).toBe(400);
     }
   });
+
+  it('rejects private, loopback and link-local destinations (SSRF)', async () => {
+    for (const url of [
+      'https://localhost/hook',
+      'https://127.0.0.1/hook',
+      'https://10.0.0.5/hook',
+      'https://169.254.169.254/latest/meta-data/',
+      'https://[::1]/hook',
+    ]) {
+      const res = await request(app).post('/v1/endpoints').set(auth()).send({ url });
+      expect(res.status, url).toBe(400);
+      expect(res.body, url).toMatchObject({
+        errors: [
+          {
+            location: 'body',
+            path: 'url',
+            message: 'must not point to a private, loopback or link-local address',
+          },
+        ],
+      });
+    }
+  });
 });
 
 describe('tenant isolation', () => {
@@ -157,6 +179,15 @@ describe('PATCH and DELETE /v1/endpoints/:id', () => {
       event_types: ['a.b'],
       active: false,
     });
+  });
+
+  it('applies the SSRF guard to updates too', async () => {
+    const created = await createEndpoint();
+    const res = await request(app)
+      .patch(`/v1/endpoints/${created.id}`)
+      .set(auth())
+      .send({ url: 'https://192.168.0.10/hook' });
+    expect(res.status).toBe(400);
   });
 
   it('rejects an empty update', async () => {

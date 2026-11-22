@@ -10,6 +10,7 @@ const app = createApp({
   db: { query: () => Promise.resolve({ rows: [] }) } as unknown as Db,
   adminToken: 'test-admin-token-123',
   allowHttpEndpointUrls: true,
+  allowPrivateEndpointTargets: true,
 });
 
 describe('requireJsonBody', () => {

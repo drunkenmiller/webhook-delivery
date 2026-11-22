@@ -32,6 +32,18 @@ describe('loadConfig', () => {
     });
   });
 
+  it('parses ALLOW_PRIVATE_TARGETS as a boolean string', () => {
+    expect(loadConfig({ DATABASE_URL, ADMIN_TOKEN, ALLOW_PRIVATE_TARGETS: 'true' })).toMatchObject({
+      ALLOW_PRIVATE_TARGETS: true,
+    });
+    expect(loadConfig({ DATABASE_URL, ADMIN_TOKEN, ALLOW_PRIVATE_TARGETS: 'false' })).toMatchObject(
+      { ALLOW_PRIVATE_TARGETS: false },
+    );
+    expect(() => loadConfig({ DATABASE_URL, ADMIN_TOKEN, ALLOW_PRIVATE_TARGETS: 'maybe' })).toThrow(
+      /ALLOW_PRIVATE_TARGETS/,
+    );
+  });
+
   it('coerces PORT from a string', () => {
     expect(loadConfig({ DATABASE_URL, ADMIN_TOKEN, PORT: '8080' }).PORT).toBe(8080);
   });
