@@ -6,6 +6,7 @@ import type { Db } from './db.ts';
 import { endpointsRouter } from './endpoints/routes.ts';
 import { errorHandler, notFoundHandler } from './http/problem.ts';
 import { resolveRequestId } from './http/request-id.ts';
+import { requireJsonBody } from './http/require-json.ts';
 import { healthRouter } from './routes/health.ts';
 
 export interface AppDeps {
@@ -34,7 +35,8 @@ export function createApp({ logger, db, adminToken, allowHttpEndpointUrls }: App
     }),
   );
 
-  // JSON bodies only, capped at 256 KiB (SPEC §6).
+  // JSON bodies only (415 otherwise), capped at 256 KiB (SPEC §6).
+  app.use(requireJsonBody);
   app.use(express.json({ limit: '256kb' }));
 
   app.use(healthRouter(db));
