@@ -1,0 +1,13 @@
+{
+  // Starts from the shared options, then switches to what a browser bundle needs:
+  // DOM types, JSX, and "bundler" module resolution (Vite resolves imports, not Node).
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2024", "dom", "dom.iterable"],
+    "types": ["vite/client"],
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src", "test", "*.ts"]
+}
