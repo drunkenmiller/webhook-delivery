@@ -32,7 +32,7 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 - [ ] Integration tests: lease expiry, fencing, concurrent workers, idempotency races — core
 
 ## M4 — Product
-- [ ] Dashboard scaffolding (Vite + React + TanStack Query) — support
+- [x] Dashboard scaffolding (Vite + React + TanStack Query) — support (+ endpoints page, CORS)
 - [ ] Pages: endpoints, messages, delivery detail with attempts, replay button — core/support
 - [ ] Full deploy (API + worker + DB + dashboard) — support
 
