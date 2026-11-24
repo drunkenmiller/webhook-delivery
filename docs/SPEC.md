@@ -184,6 +184,7 @@ webhook-signature: v1,<base64(HMAC-SHA256(secret_bytes, "{id}.{timestamp}.{body}
 
 Conventions:
 - Auth: `Authorization: Bearer <api_key>`; key format `whd_<prefix>_<secret>`. Admin routes use `ADMIN_TOKEN` (≥ 16 chars). Every authentication failure returns the same `401` with `WWW-Authenticate: Bearer`.
+- CORS: browser origins listed in `CORS_ORIGINS` (comma-separated; the dashboard) get `Access-Control-Allow-Origin` and preflight answers; other origins get no CORS headers.
 - Request bodies must be `Content-Type: application/json` (charset parameter allowed), otherwise `415`. Requests without a body are not checked.
 - Endpoint URLs pointing to loopback, private (RFC 1918, `fc00::/7`), link-local (including `169.254.169.254`), CGNAT, multicast or reserved addresses, or to `localhost`/`*.localhost`, are rejected with `400` unless `ALLOW_PRIVATE_TARGETS=true` (default: `true` outside production).
 - Errors: `application/problem+json` (RFC 9457) — `{ type, title, status, detail, errors? }`.

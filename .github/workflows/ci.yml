@@ -1,4 +1,4 @@
-# CI for every Node.js workspace (api, tools/receiver). GitHub runs this on its own machines
+# CI for every Node.js workspace (api, tools/receiver, dashboard). GitHub runs this on its own machines
 # ("runners") on every pull request and on every push to main.
 name: ci
 
@@ -33,6 +33,8 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
+      # The dashboard is a static bundle: prove it still builds.
+      - run: npm run build --workspace dashboard
 
   # Proves the production images still build (they are not published anywhere yet).
   docker:

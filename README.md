@@ -31,7 +31,7 @@ Dashboard (React) ──────▶ API ────┘
 ```
 api/            Node.js + TypeScript + Express 5 (ingest & management API)
 worker/         Go delivery worker
-dashboard/      Vite + React + TanStack Query (planned)
+dashboard/      Vite + React + TanStack Query
 db/migrations/  SQL migrations (dbmate), shared by API and worker
 tools/receiver/ test receiver (signature verification, simulated failures)
 docs/           spec, ADRs, roadmap, backlog
@@ -57,13 +57,14 @@ make db-rollback                # undo the last migration
 make db-psql                    # psql shell inside the container
 ```
 
-Node.js code lives in **npm workspaces** (`api/`, `tools/receiver/`) that share one lockfile and
+Node.js code lives in **npm workspaces** (`api/`, `tools/receiver/`, `dashboard/`) that share one lockfile and
 one TypeScript/ESLint/Prettier setup at the repository root. Install once, at the root:
 
 ```bash
 npm install                     # installs every workspace
 npm run check                   # lint + format + typecheck + tests, in every workspace
 npm run dev --workspace api     # http://localhost:3000/healthz — reloads on file changes
+npm run dev --workspace dashboard   # http://localhost:5173 — needs CORS_ORIGINS=http://localhost:5173 in .env
 npm run test:integration        # tests against a real PostgreSQL 18 (needs Docker running)
 ```
 
@@ -96,7 +97,10 @@ curl -s -X PATCH localhost:3000/v1/endpoints/<id> -H "Authorization: Bearer whd_
   -H 'Content-Type: application/json' -d '{"active":false}'
 ```
 
-More steps (messages, worker, dashboard) will be added as each part lands.
+Or open the dashboard (`npm run dev --workspace dashboard`, http://localhost:5173), paste the API
+key and manage endpoints there.
+
+More steps (messages, worker) will be added as each part lands.
 
 ## Status
 | Area | Status |
@@ -107,8 +111,8 @@ More steps (messages, worker, dashboard) will be added as each part lands.
 | Applications, API key auth, endpoints CRUD | ✅ |
 | `POST /v1/messages` with idempotency | ⏳ |
 | API scaffolding (health checks, problem+json errors, request IDs) | ✅ |
-| CI (GitHub Actions) | 🟡 API only |
+| CI (GitHub Actions) | ✅ Node workspaces (worker pending) |
 | Go worker (claim, lease, HMAC) | ⏳ |
 | Retries, DLQ, replay, graceful shutdown | ⏳ |
-| Dashboard | ⏳ |
+| Dashboard | 🟡 endpoints page |
 | Deploy | ⏳ |

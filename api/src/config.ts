@@ -13,6 +13,27 @@ const ConfigSchema = z.object({
   // Allow endpoint URLs on private/loopback addresses (e.g. http://localhost:4000). Defaults to
   // true outside production so local demos work; see endpoints/url-safety.ts.
   ALLOW_PRIVATE_TARGETS: z.stringbool().optional(),
+  // Comma-separated browser origins allowed by CORS, e.g. "http://localhost:5173" (the dashboard).
+  CORS_ORIGINS: z
+    .string()
+    .default('')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter((origin) => origin !== ''),
+    )
+    .pipe(
+      z.array(
+        // An origin is scheme://host[:port] — no path, no trailing slash.
+        z
+          .string()
+          .refine(
+            (origin) => URL.canParse(origin) && new URL(origin).origin === origin,
+            'must be an origin like https://dashboard.example.com (no path, no trailing slash)',
+          ),
+      ),
+    ),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
