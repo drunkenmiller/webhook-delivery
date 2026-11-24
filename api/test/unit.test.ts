@@ -29,6 +29,7 @@ describe('loadConfig', () => {
       LOG_LEVEL: 'info',
       DATABASE_URL,
       ADMIN_TOKEN,
+      CORS_ORIGINS: [],
     });
   });
 
@@ -42,6 +43,19 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ DATABASE_URL, ADMIN_TOKEN, ALLOW_PRIVATE_TARGETS: 'maybe' })).toThrow(
       /ALLOW_PRIVATE_TARGETS/,
     );
+  });
+
+  it('parses CORS_ORIGINS as a list of origins', () => {
+    expect(
+      loadConfig({
+        DATABASE_URL,
+        ADMIN_TOKEN,
+        CORS_ORIGINS: 'http://localhost:5173, https://dash.example.com',
+      }).CORS_ORIGINS,
+    ).toEqual(['http://localhost:5173', 'https://dash.example.com']);
+    expect(() =>
+      loadConfig({ DATABASE_URL, ADMIN_TOKEN, CORS_ORIGINS: 'http://localhost:5173/' }),
+    ).toThrow(/CORS_ORIGINS/);
   });
 
   it('coerces PORT from a string', () => {

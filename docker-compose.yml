@@ -36,6 +36,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-webhooks}:${POSTGRES_PASSWORD:-webhooks}@db:5432/${POSTGRES_DB:-webhooks}?sslmode=disable
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-me}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
     ports:
       - "${API_PORT:-3000}:3000"
     depends_on:

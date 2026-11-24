@@ -4,6 +4,7 @@ import { pinoHttp } from 'pino-http';
 import { applicationsRouter } from './applications/routes.ts';
 import type { Db } from './db.ts';
 import { endpointsRouter } from './endpoints/routes.ts';
+import { cors } from './http/cors.ts';
 import { errorHandler, notFoundHandler } from './http/problem.ts';
 import { resolveRequestId } from './http/request-id.ts';
 import { requireJsonBody } from './http/require-json.ts';
@@ -15,6 +16,8 @@ export interface AppDeps {
   adminToken: string;
   allowHttpEndpointUrls: boolean;
   allowPrivateEndpointTargets: boolean;
+  // Browser origins allowed to call the API (the dashboard). Empty = no cross-origin access.
+  corsOrigins?: readonly string[];
 }
 
 // Builds the Express app without starting a server. Dependencies are passed in
@@ -25,6 +28,7 @@ export function createApp({
   adminToken,
   allowHttpEndpointUrls,
   allowPrivateEndpointTargets,
+  corsOrigins = [],
 }: AppDeps): Express {
   const app = express();
   app.disable('x-powered-by');
@@ -41,6 +45,9 @@ export function createApp({
       },
     }),
   );
+
+  // Before the body checks and auth: a CORS preflight has no body and no credentials.
+  app.use(cors(corsOrigins));
 
   // JSON bodies only (415 otherwise), capped at 256 KiB (SPEC §6).
   app.use(requireJsonBody);

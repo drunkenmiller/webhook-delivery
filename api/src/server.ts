@@ -13,6 +13,7 @@ const app = createApp({
   adminToken: config.ADMIN_TOKEN,
   allowHttpEndpointUrls: config.NODE_ENV !== 'production',
   allowPrivateEndpointTargets: config.ALLOW_PRIVATE_TARGETS ?? config.NODE_ENV !== 'production',
+  corsOrigins: config.CORS_ORIGINS,
 });
 
 const server = app.listen(config.PORT, (error) => {
