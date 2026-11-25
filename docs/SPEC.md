@@ -1,6 +1,6 @@
 # webhook-delivery — Specification (v1 / MVP)
 
-> Status: **Draft** · Last updated: 2026-11-13
+> Status: **Draft** · Last updated: 2026-11-25
 >
 > This is the source of truth for *what* the system does. *Why* a decision was made lives in
 > [`docs/adr/`](adr/). When the spec and the code disagree, fix one of them in the same PR.
@@ -102,19 +102,21 @@ Constraint: `UNIQUE (app_id, idempotency_key)` (rows with NULL keys are not dedu
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
-| message_id | uuid NOT NULL FK | |
-| endpoint_id | uuid NOT NULL FK | |
+| app_id | uuid NOT NULL | denormalized from the message for tenant-filtered reads (ADR 0009) |
+| message_id | uuid NOT NULL | FK `(app_id, message_id)` → messages |
+| endpoint_id | uuid NOT NULL | FK `(app_id, endpoint_id)` → endpoints — same application guaranteed |
 | status | text NOT NULL | `pending` · `in_flight` · `succeeded` · `dead` (CHECK constraint) |
-| attempt_count | int NOT NULL DEFAULT 0 | |
-| next_attempt_at | timestamptz NOT NULL DEFAULT now() | when the delivery becomes due |
+| attempt_count | int NOT NULL DEFAULT 0 | finished attempts; reset by replay |
+| claim_count | int NOT NULL DEFAULT 0 | fencing token: +1 on every claim, never reset (ADR 0009) |
+| next_attempt_at | timestamptz NOT NULL DEFAULT now() | when the delivery is due next: retry time if `pending`, lease expiry if `in_flight` |
 | locked_by | text NULL | worker instance holding the lease |
 | locked_until | timestamptz NULL | lease expiry |
 | last_error | text NULL | |
 | created_at / updated_at | timestamptz | |
 
-Constraint: `UNIQUE (message_id, endpoint_id)`.
-Index requirement: the claim query must be served by an index over due work (e.g. a partial index on
-`next_attempt_at` for claimable statuses). Prove it with `EXPLAIN ANALYZE` and record the result in the ADR.
+Constraints: `UNIQUE (message_id, endpoint_id)`; `in_flight` requires `locked_by` and `locked_until`.
+Claim index: `deliveries_due_idx ON (next_attempt_at) WHERE status IN ('pending','in_flight')` —
+`EXPLAIN ANALYZE` in ADR 0009.
 
 ### `attempts`
 | Column | Type | Notes |
@@ -143,14 +145,16 @@ Index requirement: the claim query must be served by an index over due work (e.g
 ```
 
 Rules:
-1. **Claimable** = (`status = 'pending'` AND `next_attempt_at <= now()`) OR (`status = 'in_flight'` AND `locked_until < now()`).
+1. **Claimable** = `status IN ('pending', 'in_flight') AND next_attempt_at <= now()` — for an
+   `in_flight` row `next_attempt_at` is the lease expiry, so an expired lease is simply "due" (ADR 0009).
 2. **Claim** runs in a short transaction with `SELECT … FOR UPDATE SKIP LOCKED LIMIT <batch>` and sets
-   `status = 'in_flight'`, `locked_by`, `locked_until = now() + lease`. The HTTP request is made
-   **outside** any database transaction.
+   `status = 'in_flight'`, `locked_by`, `locked_until = next_attempt_at = now() + lease` and
+   `claim_count = claim_count + 1`. The HTTP request is made **outside** any database transaction.
 3. **Lease** (default 30 s) must exceed the request timeout (default 10 s) plus a safety margin.
 4. **Completion is fenced:** the worker updates the delivery only
-   `WHERE id = $1 AND locked_by = $me AND status = 'in_flight'`. If 0 rows change, the lease was lost
-   and the outcome is discarded (the attempt row is still recorded).
+   `WHERE id = $1 AND status = 'in_flight' AND locked_by = $me AND claim_count = $token` (the value
+   its claim returned). If 0 rows change, the lease was lost and the outcome is discarded (the
+   attempt row is still recorded).
 5. **Success** = any `2xx` within the timeout. Redirects are not followed (3xx counts as failure).
 6. **Failure** increments `attempt_count`. If `attempt_count >= max_attempts` → `dead`; otherwise →
    `pending` with `next_attempt_at = now() + backoff(attempt_count)`.

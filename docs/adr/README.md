@@ -14,3 +14,4 @@ gets a new ADR that supersedes the old one.
 | [0006](0006-retries-backoff-jitter-dlq.md) | Retries with exponential backoff, full jitter and a DLQ | Proposed |
 | [0007](0007-signing-and-api-keys.md) | Standard Webhooks signing and hashed API keys | Proposed |
 | [0008](0008-hosting.md) | Hosting platform | Proposed |
+| [0009](0009-delivery-schema-fencing-claim-index.md) | Delivery schema: fencing token, claim index and app_id on deliveries | Accepted |
