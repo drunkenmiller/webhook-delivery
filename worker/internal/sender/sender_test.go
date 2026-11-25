@@ -2,6 +2,7 @@ package sender
 
 import (
 	"context"
+	"encoding/base64"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +12,8 @@ import (
 	"time"
 )
 
-const testSecret = "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw"
+// Any valid secret works here; the signature itself is checked in package signature.
+var testSecret = "whsec_" + base64.StdEncoding.EncodeToString([]byte("sender-test-key-0123456789abcdef"))
 
 func request(url string) Request {
 	return Request{URL: url, Secret: testSecret, MessageID: "msg_1", Body: []byte(`{"a":1}`)}

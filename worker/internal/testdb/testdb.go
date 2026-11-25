@@ -4,6 +4,8 @@ package testdb
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -90,8 +92,15 @@ func Reset(t *testing.T, pool *pgxpool.Pool) {
 	}
 }
 
-// Secret is a valid endpoint secret for tests.
-const Secret = "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw"
+// Secret is a valid endpoint secret for tests, random for every test run (never a literal in the
+// repository: secret scanners flag "whsec_…" strings).
+var Secret = randomSecret()
+
+func randomSecret() string {
+	key := make([]byte, 32)
+	_, _ = rand.Read(key) // crypto/rand.Read never returns an error
+	return "whsec_" + base64.StdEncoding.EncodeToString(key)
+}
 
 // Seed creates one application, one endpoint pointing at url, and n messages with one pending
 // delivery each. It returns the delivery ids.
