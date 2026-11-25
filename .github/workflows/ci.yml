@@ -1,4 +1,4 @@
-# CI for every Node.js workspace (api, tools/receiver, dashboard). GitHub runs this on its own machines
+# CI for the Node.js workspaces (api, tools/receiver, dashboard) and the Go worker. GitHub runs this on its own machines
 # ("runners") on every pull request and on every push to main.
 name: ci
 
@@ -44,6 +44,7 @@ jobs:
       - uses: actions/checkout@v7
       - run: docker build --file api/Dockerfile --tag webhook-delivery-api:ci .
       - run: docker build --tag webhook-delivery-receiver:ci tools/receiver
+      - run: docker build --tag webhook-delivery-worker:ci worker
 
   # Tests against a real PostgreSQL 18 started by Testcontainers (Docker is preinstalled on the
   # Ubuntu runners).
@@ -58,3 +59,22 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:integration
+
+  # The Go worker: formatting, vet, and every test with the race detector. The store and worker
+  # packages start PostgreSQL with Testcontainers, like the API's integration job.
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: worker/go.mod
+          cache-dependency-path: worker/go.sum
+      # gofmt -l lists badly formatted files; any output fails the step.
+      - run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - run: go vet ./...
+      - run: go test -race ./...

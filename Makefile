@@ -9,12 +9,12 @@ DBMATE_FLAGS ?=
 
 .DEFAULT_GOAL := help
 
-.PHONY: help up down db-up db-down db-new db-migrate db-rollback db-status db-reset db-psql
+.PHONY: help up down db-up db-down db-new db-migrate db-rollback db-status db-reset db-psql worker worker-test
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "} {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-up: ## Build and start everything in containers (db, api, receiver)
+up: ## Build and start everything in containers (db, api, worker, receiver)
 	docker compose --profile app up -d --build --wait
 
 down: ## Stop all containers, including the app profile (data is kept)
@@ -46,3 +46,9 @@ db-reset: ## DESTRUCTIVE: delete the database volume, start fresh and migrate
 
 db-psql: ## Open a psql shell inside the database container
 	docker compose exec db sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+
+worker: ## Run the Go worker locally with the variables from .env
+	cd worker && set -a && . ../.env && set +a && go run ./cmd/worker
+
+worker-test: ## Worker tests (unit + integration; integration needs Docker)
+	cd worker && go vet ./... && go test -race ./...
