@@ -109,7 +109,12 @@ curl -si localhost:3000/v1/messages -H "Authorization: Bearer whd_..." \
   -d '{"event_type":"invoice.paid","payload":{"invoice_id":"inv_42","amount":4200}}'
 ```
 
-More steps (worker) will be added as each part lands.
+Then run the worker (needs Go; reads `.env`), which claims the deliveries and sends them signed:
+
+```bash
+make worker        # or: make up  → API, worker and the demo receiver in containers
+make worker-test   # unit + integration tests (Docker)
+```
 
 ## Status
 | Area | Status |
@@ -120,8 +125,8 @@ More steps (worker) will be added as each part lands.
 | Applications, API key auth, endpoints CRUD | ✅ |
 | `POST /v1/messages` with idempotency | ✅ |
 | API scaffolding (health checks, problem+json errors, request IDs) | ✅ |
-| CI (GitHub Actions) | ✅ Node workspaces (worker pending) |
-| Go worker (claim, lease, HMAC) | ⏳ |
-| Retries, DLQ, replay, graceful shutdown | ⏳ |
+| CI (GitHub Actions) | ✅ Node workspaces + Go worker |
+| Go worker (claim, lease, HMAC) | ✅ |
+| Retries, DLQ, replay, graceful shutdown | 🟡 replay API pending |
 | Dashboard | 🟡 endpoints page |
 | Deploy | ⏳ |

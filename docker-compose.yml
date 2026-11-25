@@ -51,7 +51,19 @@ services:
     ports:
       - "${RECEIVER_PORT:-4000}:4000"
 
-  # Added in a later milestone: worker.
+  worker:
+    profiles: [app]
+    build: ./worker
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-webhooks}:${POSTGRES_PASSWORD:-webhooks}@db:5432/${POSTGRES_DB:-webhooks}?sslmode=disable
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # The demo receiver is a private address inside the Compose network: allow it locally.
+      ALLOW_PRIVATE_TARGETS: ${ALLOW_PRIVATE_TARGETS:-true}
+    # docker stop sends SIGTERM, then SIGKILL after this: longer than SHUTDOWN_GRACE (25 s).
+    stop_grace_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
