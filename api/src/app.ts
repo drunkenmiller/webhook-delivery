@@ -8,6 +8,7 @@ import { cors } from './http/cors.ts';
 import { errorHandler, notFoundHandler } from './http/problem.ts';
 import { resolveRequestId } from './http/request-id.ts';
 import { requireJsonBody } from './http/require-json.ts';
+import { messagesRouter } from './messages/routes.ts';
 import { healthRouter } from './routes/health.ts';
 
 export interface AppDeps {
@@ -62,6 +63,7 @@ export function createApp({
       allowPrivateTargets: allowPrivateEndpointTargets,
     }),
   );
+  app.use(messagesRouter({ db }));
 
   // Must come after every route: 404 for unmatched paths, then the problem+json error handler.
   app.use(notFoundHandler);
