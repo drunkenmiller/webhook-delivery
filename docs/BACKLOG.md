@@ -17,17 +17,17 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 - [ ] Dockerfile for the API (done); deploy skeleton (after ADR 0008 is decided) — support
 
 ## M2 — Worker
-- [ ] Go module scaffolding, config from env, pgx pool, structured logs (slog) — support
-- [ ] **Claim query with SKIP LOCKED + lease** — core
-- [ ] **HTTP delivery with timeout + Standard Webhooks signature** — core
-- [ ] Attempt recording + fenced completion — core
+- [x] Go module scaffolding, config from env, pgx pool, structured logs (slog) — support
+- [x] **Claim query with SKIP LOCKED + lease** — core (reference implementation, 2026-11-25)
+- [x] **HTTP delivery with timeout + Standard Webhooks signature** — core (reference implementation, 2026-11-25)
+- [x] Attempt recording + fenced completion — core (reference implementation, 2026-11-25)
 - [x] Test receiver (`tools/receiver`) that verifies signatures and can simulate failures/slowness — support
-- [ ] CI job for `worker/` (vet, test) — support
+- [x] CI job for `worker/` (gofmt, vet, test -race) — support
 
 ## M3 — Reliability
-- [ ] **Backoff with full jitter (injectable clock/random)** — core
-- [ ] Dead state + `POST /v1/deliveries/:id/replay` — core
-- [ ] **Graceful shutdown via context** — core
+- [x] **Backoff with full jitter (injectable clock/random)** — core (reference implementation, 2026-11-25)
+- [ ] Dead state (✅ worker) + `POST /v1/deliveries/:id/replay` — core
+- [x] **Graceful shutdown via context** — core (reference implementation, 2026-11-25)
 - [ ] Read endpoints with cursor pagination (messages, deliveries, attempts) — core
 - [ ] Integration tests: lease expiry, fencing, concurrent workers, idempotency races — core
 

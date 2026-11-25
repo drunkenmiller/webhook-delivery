@@ -230,11 +230,16 @@ Validation (zod): `event_type` pattern above; `payload` must be a JSON object; b
 - Config via env: `DATABASE_URL`, `WORKER_ID` (default hostname-pid), `CONCURRENCY` (8),
   `POLL_INTERVAL` (500 ms), `BATCH_SIZE` (= CONCURRENCY), `LEASE_DURATION` (30 s), `REQUEST_TIMEOUT` (10 s),
   `MAX_ATTEMPTS` (8), `BACKOFF_BASE` (5 s), `BACKOFF_CAP` (1 h), `SHUTDOWN_GRACE` (25 s).
-- Loop: claim up to `BATCH_SIZE` due deliveries → hand them to a pool of `CONCURRENCY` goroutines →
-  sleep `POLL_INTERVAL` when nothing was claimed. (LISTEN/NOTIFY for lower latency is a stretch goal.)
+- Loop: wait for a free slot → claim up to `min(free slots, BATCH_SIZE)` due deliveries → run each in
+  its own goroutine (at most `CONCURRENCY` at a time) → sleep `POLL_INTERVAL` when nothing was claimed.
+  (LISTEN/NOTIFY for lower latency is a stretch goal.)
+- `ALLOW_PRIVATE_TARGETS` (default `false`): when false, the worker refuses to connect to private,
+  loopback, link-local, CGNAT or reserved IPs, checked on the resolved address right before connecting.
 - Every HTTP request runs under a `context` with `REQUEST_TIMEOUT`; the response body read is capped.
 - **Graceful shutdown** on SIGINT/SIGTERM: stop claiming, let in-flight deliveries finish within
-  `SHUTDOWN_GRACE`, then exit. Unfinished work is recovered through lease expiry.
+  `SHUTDOWN_GRACE`, then exit. Unfinished work is recovered through lease expiry; an attempt aborted
+  by shutdown is not recorded and does not count. The claim and result writes are not cancelled by
+  the signal (each has its own short timeout), so a committed claim is never dropped on the floor.
 - Every log line about a delivery includes `delivery_id`, `message_id`, `endpoint_id`, `attempt`,
   `request_id`, `worker_id`.
 
@@ -272,5 +277,5 @@ Correlation: the API's `X-Request-Id` is stored in `messages.request_id` and log
 - [ ] Tenant isolation on every query (`app_id = <authenticated app>`)
 - [ ] SSRF: block private, loopback and link-local destinations in production (`ALLOW_PRIVATE_TARGETS=true` only in dev)
   - [x] API: endpoint URLs with literal private IPs or `localhost` are rejected on create/update
-  - [ ] Worker: check the resolved IP at connect time (a public hostname can resolve to a private address — DNS rebinding)
+  - [x] Worker: check the resolved IP at connect time (a public hostname can resolve to a private address — DNS rebinding)
 - [ ] Secrets only via environment variables; `.env` is git-ignored
