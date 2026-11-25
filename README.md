@@ -100,16 +100,25 @@ curl -s -X PATCH localhost:3000/v1/endpoints/<id> -H "Authorization: Bearer whd_
 Or open the dashboard (`npm run dev --workspace dashboard`, http://localhost:5173), paste the API
 key and manage endpoints there.
 
-More steps (messages, worker) will be added as each part lands.
+Send an event (fanned out to every active endpoint subscribed to `invoice.paid`); repeating the
+same request with the same `Idempotency-Key` returns the same id with `Idempotent-Replayed: true`:
+
+```bash
+curl -si localhost:3000/v1/messages -H "Authorization: Bearer whd_..." \
+  -H 'Content-Type: application/json' -H 'Idempotency-Key: order-42-paid' \
+  -d '{"event_type":"invoice.paid","payload":{"invoice_id":"inv_42","amount":4200}}'
+```
+
+More steps (worker) will be added as each part lands.
 
 ## Status
 | Area | Status |
 |---|---|
 | Spec & ADRs | ✅ draft |
 | Local PostgreSQL (Compose) | ✅ |
-| Schema v1 + migrations | ⏳ |
+| Schema v1 + migrations | ✅ |
 | Applications, API key auth, endpoints CRUD | ✅ |
-| `POST /v1/messages` with idempotency | ⏳ |
+| `POST /v1/messages` with idempotency | ✅ |
 | API scaffolding (health checks, problem+json errors, request IDs) | ✅ |
 | CI (GitHub Actions) | ✅ Node workspaces (worker pending) |
 | Go worker (claim, lease, HMAC) | ⏳ |

@@ -23,7 +23,7 @@ export function createTestContext() {
 
 // Empties the tables between tests so each test starts from a known state.
 export async function resetDatabase(pool: ReturnType<typeof createPool>): Promise<void> {
-  await pool.query('TRUNCATE applications, endpoints CASCADE');
+  await pool.query('TRUNCATE applications, endpoints, messages, deliveries, attempts CASCADE');
 }
 
 // Creates an application through the admin API and returns its id and API key.

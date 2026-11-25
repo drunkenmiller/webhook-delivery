@@ -35,4 +35,4 @@ We will use the `deliveries` table in PostgreSQL as the queue.
   dispatch to a log-based broker while keeping Postgres as the source of truth.
 - Polling adds up to `POLL_INTERVAL` of latency; LISTEN/NOTIFY can reduce it later.
 - Table bloat from frequent updates: watch autovacuum; archive old rows.
-- To validate: `EXPLAIN ANALYZE` of the claim query uses the partial index (paste the plan here).
+- Validated: `EXPLAIN ANALYZE` of the claim query uses the partial index — plan and fencing details in ADR 0009.
