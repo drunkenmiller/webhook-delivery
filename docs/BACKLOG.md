@@ -26,9 +26,9 @@ Each item becomes a GitHub issue. **Owner** = who writes the code (`core` = repo
 
 ## M3 — Reliability
 - [x] **Backoff with full jitter (injectable clock/random)** — core (reference implementation, 2026-11-25)
-- [ ] Dead state (✅ worker) + `POST /v1/deliveries/:id/replay` — core
+- [x] Dead state + `POST /v1/deliveries/:id/replay` — core (reference implementation, 2026-11-26)
 - [x] **Graceful shutdown via context** — core (reference implementation, 2026-11-25)
-- [ ] Read endpoints with cursor pagination (messages, deliveries, attempts) — core
+- [x] Read endpoints with cursor pagination (messages, deliveries, attempts) — core (reference implementation, 2026-11-26)
 - [ ] Integration tests: lease expiry, fencing, concurrent workers, idempotency races — core
 
 ## M4 — Product

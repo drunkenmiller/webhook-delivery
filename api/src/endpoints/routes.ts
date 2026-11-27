@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateApp, authenticatedApp } from '../auth/app-auth.ts';
 import type { Db } from '../db.ts';
+import { decodeCursor, PageQuery, toPage } from '../http/pagination.ts';
 import { ProblemError } from '../http/problem.ts';
 import { withValidation } from '../http/validate.ts';
 import { isPrivateTarget } from './url-safety.ts';
@@ -56,11 +57,6 @@ export function endpointsRouter({
       active: z.boolean().optional(),
     })
     .refine((body) => Object.keys(body).length > 0, 'provide at least one field to update');
-  const ListQuery = z.object({
-    limit: z.coerce.number().int().min(1).max(100).default(20),
-    cursor: z.string().optional(),
-  });
-
   // Every /v1/endpoints route requires an application API key.
   router.use('/v1/endpoints', authenticateApp(db));
 
@@ -82,18 +78,13 @@ export function endpointsRouter({
   // GET /v1/endpoints?limit=&cursor= — newest first, opaque cursor.
   router.get(
     '/v1/endpoints',
-    withValidation({ query: ListQuery }, async ({ query }, req, res) => {
+    withValidation({ query: PageQuery }, async ({ query }, req, res) => {
       // Ask for one extra row: if it exists, there is a next page.
       const rows = await listEndpoints(db, authenticatedApp(req).id, {
         limit: query.limit + 1,
-        afterId: query.cursor === undefined ? undefined : decodeCursor(query.cursor),
+        afterId: decodeCursor(query.cursor),
       });
-      const page = rows.slice(0, query.limit);
-      const last = page.at(-1);
-      res.json({
-        data: page.map(toResponse),
-        next_cursor: rows.length > query.limit && last ? encodeCursor(last.id) : null,
-      });
+      res.json(toPage(rows, query.limit, toResponse));
     }),
   );
 
@@ -146,18 +137,4 @@ function toResponse(row: EndpointRow) {
 
 function notFound(): ProblemError {
   return new ProblemError({ status: 404, detail: 'Endpoint not found' });
-}
-
-// The cursor is "opaque": clients pass it back without interpreting it, so its format
-// (today base64url of the last id) can change later without breaking anyone.
-function encodeCursor(id: string): string {
-  return Buffer.from(id).toString('base64url');
-}
-
-function decodeCursor(cursor: string): string {
-  const id = Buffer.from(cursor, 'base64url').toString('utf8');
-  if (!z.uuid().safeParse(id).success) {
-    throw new ProblemError({ status: 400, type: 'invalid-cursor', detail: 'Invalid cursor' });
-  }
-  return id;
 }

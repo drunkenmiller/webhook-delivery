@@ -109,11 +109,20 @@ curl -si localhost:3000/v1/messages -H "Authorization: Bearer whd_..." \
   -d '{"event_type":"invoice.paid","payload":{"invoice_id":"inv_42","amount":4200}}'
 ```
 
-Then run the worker (needs Go; reads `.env`), which claims the deliveries and sends them signed:
+Run the worker (needs Go; reads `.env`), which claims the deliveries and sends them signed:
 
 ```bash
 make worker        # or: make up  → API, worker and the demo receiver in containers
 make worker-test   # unit + integration tests (Docker)
+```
+
+Follow what happened, and replay a delivery that exhausted its retries (`dead`):
+
+```bash
+curl -s localhost:3000/v1/messages/<message_id> -H "Authorization: Bearer whd_..."      # + its deliveries
+curl -s 'localhost:3000/v1/deliveries?status=dead' -H "Authorization: Bearer whd_..."
+curl -s localhost:3000/v1/deliveries/<id>/attempts -H "Authorization: Bearer whd_..."
+curl -s -X POST localhost:3000/v1/deliveries/<id>/replay -H "Authorization: Bearer whd_..."
 ```
 
 ## Status
@@ -127,6 +136,7 @@ make worker-test   # unit + integration tests (Docker)
 | API scaffolding (health checks, problem+json errors, request IDs) | ✅ |
 | CI (GitHub Actions) | ✅ Node workspaces + Go worker |
 | Go worker (claim, lease, HMAC) | ✅ |
-| Retries, DLQ, replay, graceful shutdown | 🟡 replay API pending |
+| Retries, DLQ, replay, graceful shutdown | ✅ |
+| Read API (messages, deliveries, attempts) | ✅ |
 | Dashboard | 🟡 endpoints page |
 | Deploy | ⏳ |

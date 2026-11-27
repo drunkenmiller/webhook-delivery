@@ -2,16 +2,24 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateApp, authenticatedApp } from '../auth/app-auth.ts';
 import type { Db } from '../db.ts';
+import { listMessageDeliveries } from '../deliveries/repository.ts';
+import { toDeliveryResponse } from '../deliveries/routes.ts';
+import { decodeCursor, PageQuery, toPage } from '../http/pagination.ts';
 import { ProblemError } from '../http/problem.ts';
 import { withValidation } from '../http/validate.ts';
-import { ingestMessage } from './repository.ts';
+import { findMessage, ingestMessage, listMessages } from './repository.ts';
 import { hashRequest } from './request-hash.ts';
 
+const EventType = z.string().regex(/^[a-z0-9_.-]{1,64}$/, 'must match ^[a-z0-9_.-]{1,64}$');
+
 const IngestBody = z.strictObject({
-  event_type: z.string().regex(/^[a-z0-9_.-]{1,64}$/, 'must match ^[a-z0-9_.-]{1,64}$'),
+  event_type: EventType,
   // A JSON object (not an array or a scalar), with any fields.
   payload: z.record(z.string(), z.unknown()),
 });
+
+const ListQuery = PageQuery.extend({ event_type: EventType.optional() });
+const IdParams = z.object({ id: z.uuid() });
 
 // Printable ASCII, 1–255 chars: a UUID, a hash, "order-42-paid"… anything the producer picks.
 const IdempotencyKey = z
@@ -51,6 +59,33 @@ export function messagesRouter({ db }: { db: Db }): Router {
       }
       // 202 Accepted: stored and queued; delivery happens later, in the worker.
       res.status(202).json({ id: result.id, deliveries: result.deliveries });
+    }),
+  );
+
+  // GET /v1/messages?event_type=&limit=&cursor= — newest first, without payloads.
+  router.get(
+    '/v1/messages',
+    withValidation({ query: ListQuery }, async ({ query }, req, res) => {
+      const rows = await listMessages(db, authenticatedApp(req).id, {
+        limit: query.limit + 1,
+        afterId: decodeCursor(query.cursor),
+        eventType: query.event_type,
+      });
+      res.json(toPage(rows, query.limit, (row) => row));
+    }),
+  );
+
+  // GET /v1/messages/:id — the message with its payload and every delivery it fanned out to.
+  router.get(
+    '/v1/messages/:id',
+    withValidation({ params: IdParams }, async ({ params }, req, res) => {
+      const appId = authenticatedApp(req).id;
+      const message = await findMessage(db, appId, params.id);
+      if (message === undefined) {
+        throw new ProblemError({ status: 404, detail: 'Message not found' });
+      }
+      const deliveries = await listMessageDeliveries(db, appId, message.id);
+      res.json({ ...message, deliveries: deliveries.map(toDeliveryResponse) });
     }),
   );
 
