@@ -1,6 +1,6 @@
 # webhook-delivery — Specification (v1 / MVP)
 
-> Status: **Draft** · Last updated: 2026-11-25
+> Status: **Draft** · Last updated: 2026-11-26
 >
 > This is the source of truth for *what* the system does. *Why* a decision was made lives in
 > [`docs/adr/`](adr/). When the spec and the code disagree, fix one of them in the same PR.
@@ -205,11 +205,12 @@ Conventions:
 | `PATCH /v1/endpoints/:id` | app | Update `url`, `event_types`, `active` | 200 |
 | `DELETE /v1/endpoints/:id` | app | Deactivate (soft delete) | 204 |
 | `POST /v1/messages` | app | Ingest `{ event_type, payload }`; `Idempotency-Key` header recommended | 202 |
-| `GET /v1/messages` | app | List; filter `event_type` | 200 |
-| `GET /v1/messages/:id` | app | Message + its deliveries | 200 |
-| `GET /v1/deliveries` | app | List; filter `status`, `endpoint_id`, `message_id` | 200 |
-| `GET /v1/deliveries/:id/attempts` | app | Attempt history | 200 |
-| `POST /v1/deliveries/:id/replay` | app | Replay a `dead` delivery (`409` otherwise) | 202 |
+| `GET /v1/messages` | app | List, newest first, without payloads; filter `event_type` | 200 |
+| `GET /v1/messages/:id` | app | Message with payload + all its deliveries | 200 |
+| `GET /v1/deliveries` | app | List, newest first; filter `status`, `endpoint_id`, `message_id` | 200 |
+| `GET /v1/deliveries/:id` | app | One delivery | 200 |
+| `GET /v1/deliveries/:id/attempts` | app | Attempt history, oldest first (paginated) | 200 |
+| `POST /v1/deliveries/:id/replay` | app | Replay a `dead` delivery (`409 delivery-not-dead` otherwise); returns the delivery | 202 |
 | `GET /healthz` | — | Process is alive | 200 |
 | `GET /readyz` | — | Database reachable | 200 / 503 |
 | `GET /metrics` | — (internal) | Prometheus metrics | 200 |
@@ -224,6 +225,11 @@ Conventions:
 | No subscribed endpoints | `202 { id, deliveries: 0 }` — the message is still stored |
 
 Validation (zod): `event_type` pattern above; `payload` must be a JSON object; body > 256 KiB → `413`.
+
+### Delivery representation
+`{ id, message_id, endpoint_id, status, attempt_count, next_attempt_at, last_error, created_at, updated_at }`.
+`next_attempt_at` is the retry time while `pending` and the lease expiry while `in_flight`. Lease
+internals (`locked_by`, `locked_until`, `claim_count`) are not exposed.
 
 ## 7. Worker behavior
 
