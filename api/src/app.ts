@@ -3,6 +3,7 @@ import type { Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
 import { applicationsRouter } from './applications/routes.ts';
 import type { Db } from './db.ts';
+import { deliveriesRouter } from './deliveries/routes.ts';
 import { endpointsRouter } from './endpoints/routes.ts';
 import { cors } from './http/cors.ts';
 import { errorHandler, notFoundHandler } from './http/problem.ts';
@@ -64,6 +65,7 @@ export function createApp({
     }),
   );
   app.use(messagesRouter({ db }));
+  app.use(deliveriesRouter({ db }));
 
   // Must come after every route: 404 for unmatched paths, then the problem+json error handler.
   app.use(notFoundHandler);

@@ -95,3 +95,47 @@ async function findByIdempotencyKey(client: DbClient, input: IngestInput): Promi
   }
   return { kind: 'replayed', id: existing.id, deliveries: existing.deliveries };
 }
+
+// ---- Reads (SPEC §6: GET /v1/messages, GET /v1/messages/:id) ----
+
+export interface MessageRow {
+  id: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+  idempotency_key: string | null;
+  request_id: string | null;
+  created_at: Date;
+}
+
+// Newest first, keyset on the uuidv7 id, served by UNIQUE (app_id, id). The payload is left out
+// of lists (up to 256 KiB each); GET /v1/messages/:id returns it.
+export async function listMessages(
+  db: Db,
+  appId: string,
+  options: { limit: number; afterId: string | undefined; eventType: string | undefined },
+): Promise<Omit<MessageRow, 'payload'>[]> {
+  const { rows } = await db.query<Omit<MessageRow, 'payload'>>(
+    `SELECT id, event_type, idempotency_key, request_id, created_at
+     FROM messages
+     WHERE app_id = $1
+       AND ($2::uuid IS NULL OR id < $2)
+       AND ($3::text IS NULL OR event_type = $3)
+     ORDER BY id DESC
+     LIMIT $4`,
+    [appId, options.afterId ?? null, options.eventType ?? null, options.limit],
+  );
+  return rows;
+}
+
+export async function findMessage(
+  db: Db,
+  appId: string,
+  id: string,
+): Promise<MessageRow | undefined> {
+  const { rows } = await db.query<MessageRow>(
+    `SELECT id, event_type, payload, idempotency_key, request_id, created_at
+     FROM messages WHERE id = $1 AND app_id = $2`,
+    [id, appId],
+  );
+  return rows[0];
+}
